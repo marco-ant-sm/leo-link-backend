@@ -1,0 +1,48 @@
+# Archivos y directorios de Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+*.log
+
+# Entorno virtual
+venv/
+env/
+.venv/
+ENV/
+*.env
+
+# Archivos de configuración del entorno
+.env
+*.local
+
+# Archivos de configuración de PyCharm
+.idea/
+
+# Archivos de configuración de VSCode
+.vscode/
+
+# Archivos de configuración de Jupyter Notebook
+.ipynb_checkpoints/
+
+# Archivos de configuración de Docker
+docker-compose.override.yml
+
+# Archivos de base de datos
+*.sqlite3
+
+# Archivos de cobertura
+coverage.xml
+*.cover
+*.py,cover
+
+# Carpeta de migraciones
+migrations/
+
+# Carpeta de caché
+cache/
