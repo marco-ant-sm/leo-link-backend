@@ -22,15 +22,16 @@ class CustomUserManager(BaseUserManager):
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     nombre = models.CharField(max_length=30)
-    apellidos = models.CharField(max_length=30)
+    apellidos = models.CharField(max_length=30, blank=True)
     email = models.EmailField(unique=True)
+    password = models.CharField(max_length=128, blank=True, null=True)  # Hacer la contraseña opcional
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 
     objects = CustomUserManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['nombre', 'apellidos']
+    REQUIRED_FIELDS = ['nombre']
 
     def __str__(self):
         return self.email

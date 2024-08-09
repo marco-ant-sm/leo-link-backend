@@ -42,7 +42,10 @@ coverage.xml
 *.py,cover
 
 # Carpeta de migraciones
-migrations/
+# migrations/
 
 # Carpeta de caché
 cache/
+
+#archivo de variables
+.env
