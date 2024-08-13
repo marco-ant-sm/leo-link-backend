@@ -4,6 +4,7 @@ from rest_framework_simplejwt.views import (TokenObtainPairView, TokenRefreshVie
 from .views import CustomTokenObtainPairView
 from .views import GoogleLoginApi
 from .views import validate_token
+from .views import UserProfileView
 
 urlpatterns = [
     path('register/', UserRegisterView.as_view(), name='register'),
@@ -14,4 +15,6 @@ urlpatterns = [
     path('validate_token/', validate_token, name='validate_token'),
     #google auth
     path('login/google/', GoogleLoginApi.as_view(), name='google_login'),
+    #user profile
+     path('user/profile/', UserProfileView.as_view(), name='user_profile'),
 ]

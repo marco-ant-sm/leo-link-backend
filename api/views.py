@@ -39,7 +39,6 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         # Add custom claims
         token['nombre'] = user.nombre
         token['apellidos'] = user.apellidos
-        token['email'] = user.email
 
         return token
 
@@ -115,7 +114,7 @@ class GoogleLoginApi(APIView):
         # Validar dominio
         email = user_data['email']
         if not (email.endswith('@alumnos.udg.mx') or email.endswith('@academicos.udg.mx')):
-            return redirect(settings.BASE_APP_URL, status=403)
+            return redirect(f'{settings.BASE_APP_URL}/signUp?error=invalid_domain', status=403)
         
         user, _ = CustomUser.objects.get_or_create(
             email=user_data['email'],
@@ -130,7 +129,6 @@ class GoogleLoginApi(APIView):
 
         # Preparar datos del usuario para la URL
         user_info = {
-            'email': user.email,
             'nombre': user.nombre,
             'apellidos': user.apellidos,
             'access': access_token,
@@ -157,5 +155,19 @@ def validate_token(request):
         return Response(status=status.HTTP_200_OK)
     except Exception:
         return Response(status=status.HTTP_401_UNAUTHORIZED)
+    
+
+#view user
+
+from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated
+from .serializers import CustomUserSerializer
+
+class UserProfileView(generics.RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = CustomUserSerializer
+
+    def get_object(self):
+        return self.request.user
 
 
