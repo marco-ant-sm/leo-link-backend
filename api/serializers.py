@@ -5,15 +5,20 @@ class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ('id', 'email', 'nombre', 'apellidos', 'password')
-        extra_kwargs = {'password': {'write_only': True, 'min_length': 8}}
+        extra_kwargs = {'password': {'write_only': True, 'min_length': 8, 'required': False}}
 
     def create(self, validated_data):
+        password = validated_data.pop('password', None)
         user = CustomUser.objects.create_user(
             email=validated_data['email'],
             nombre=validated_data['nombre'],
-            apellidos=validated_data['apellidos'],
-            password=validated_data['password']
+            apellidos=validated_data.get('apellidos', '')
         )
+        if password:
+            user.set_password(password)
+        else:
+            user.set_unusable_password()
+        user.save()
         return user
 
     def update(self, instance, validated_data):
@@ -24,3 +29,9 @@ class CustomUserSerializer(serializers.ModelSerializer):
             instance.set_password(password)
         instance.save()
         return instance
+    
+
+# Google auth
+class AuthSerializer(serializers.Serializer):
+    code = serializers.CharField(required=False)
+    error = serializers.CharField(required=False)

@@ -43,3 +43,6 @@ coverage.xml
 
 # Carpeta de caché
 cache/
+
+#archivo de variables
+.env

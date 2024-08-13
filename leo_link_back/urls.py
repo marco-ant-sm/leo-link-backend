@@ -21,4 +21,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
     # path('', admin.site.urls),
+    # google auth
+    path('auth/api/', include('api.urls')),
 ]
