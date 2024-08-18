@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.core.validators import MaxLengthValidator
+
 # Create your models here.
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
@@ -27,6 +29,17 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     password = models.CharField(max_length=128, blank=True, null=True)  # Hacer la contraseña opcional
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
+
+    # user permissions
+    descripcion = models.TextField(blank=True, null=True, validators=[MaxLengthValidator(800)])
+    PERMISO_CHOICES = [
+        ('admin', 'Admin'),
+        ('estudiante', 'Estudiante'),
+        ('docente', 'Docente'),
+        ('empresa', 'Empresa'),
+    ]
+    permiso_u = models.CharField(max_length=20, choices=PERMISO_CHOICES, default='admin')
+    imagen = models.ImageField(upload_to='user_images/', blank=True, null=True)
 
     objects = CustomUserManager()
 

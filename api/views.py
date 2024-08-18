@@ -116,9 +116,15 @@ class GoogleLoginApi(APIView):
         if not (email.endswith('@alumnos.udg.mx') or email.endswith('@academicos.udg.mx')):
             return redirect(f'{settings.BASE_APP_URL}/signUp?error=invalid_domain', status=403)
         
+         # Asignar permiso_u basado en el dominio del correo
+        if email.endswith('@academicos.udg.mx'):
+            permiso_u = 'docente'
+        elif email.endswith('@alumnos.udg.mx'):
+            permiso_u = 'estudiante'
+        
         user, _ = CustomUser.objects.get_or_create(
             email=user_data['email'],
-            defaults={'nombre': user_data.get('first_name'), 'apellidos': user_data.get('last_name')}
+            defaults={'nombre': user_data.get('first_name'), 'apellidos': user_data.get('last_name'), 'permiso_u': permiso_u}
         )
         login(request, user)
 
@@ -169,5 +175,3 @@ class UserProfileView(generics.RetrieveAPIView):
 
     def get_object(self):
         return self.request.user
-
-

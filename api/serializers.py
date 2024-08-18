@@ -4,15 +4,21 @@ from .models import CustomUser
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ('id', 'email', 'nombre', 'apellidos', 'password')
-        extra_kwargs = {'password': {'write_only': True, 'min_length': 8, 'required': False}}
+        fields = ('id', 'email', 'nombre', 'apellidos', 'password', 'descripcion', 'permiso_u', 'imagen')
+        extra_kwargs = {
+            'password': {'write_only': True, 'min_length': 8, 'required': False},
+            'imagen': {'required': False}
+        }
 
     def create(self, validated_data):
         password = validated_data.pop('password', None)
         user = CustomUser.objects.create_user(
             email=validated_data['email'],
             nombre=validated_data['nombre'],
-            apellidos=validated_data.get('apellidos', '')
+            apellidos=validated_data.get('apellidos', ''),
+            descripcion=validated_data.get('descripcion', ''),
+            permiso_u=validated_data.get('permiso_u', 'admin'),
+            imagen=validated_data.get('imagen', None)
         )
         if password:
             user.set_password(password)
