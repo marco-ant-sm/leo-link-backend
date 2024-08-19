@@ -24,7 +24,7 @@ urlpatterns = [
     path('api/', include('api.urls')),
     # path('', admin.site.urls),
     # google auth
-    path('auth/api/', include('api.urls')),
+    #path('auth/api/', include('api.urls')),
 ]
 
 #Load images

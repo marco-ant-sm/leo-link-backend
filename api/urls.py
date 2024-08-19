@@ -5,6 +5,7 @@ from .views import CustomTokenObtainPairView
 from .views import GoogleLoginApi
 from .views import validate_token
 from .views import UserProfileView
+from rest_framework.documentation import include_docs_urls
 
 urlpatterns = [
     path('register/', UserRegisterView.as_view(), name='register'),
@@ -14,7 +15,9 @@ urlpatterns = [
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('validate_token/', validate_token, name='validate_token'),
     #google auth
-    path('login/google/', GoogleLoginApi.as_view(), name='google_login'),
+    path('auth/login/google/', GoogleLoginApi.as_view(), name='google_login'),
     #user profile
     path('user/profile/', UserProfileView.as_view(), name='user_profile'),
+    #Documentation
+    path('docs/', include_docs_urls(title='LEO API'))
 ]
