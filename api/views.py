@@ -152,6 +152,7 @@ from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.response import Response
 from rest_framework import status
 
+#Verifica si un usuario esta autenticado
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def validate_token(request):
@@ -163,8 +164,8 @@ def validate_token(request):
         return Response(status=status.HTTP_401_UNAUTHORIZED)
     
 
-#view user
 
+#view user profile
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from .serializers import CustomUserSerializer
@@ -175,3 +176,37 @@ class UserProfileView(generics.RetrieveAPIView):
 
     def get_object(self):
         return self.request.user
+
+#Evento crud
+from .serializers import EventoSerializer
+from .models import Evento
+from rest_framework import viewsets
+from rest_framework.exceptions import ValidationError
+
+class EventoViewSet(viewsets.ModelViewSet):
+    queryset = Evento.objects.all()
+    serializer_class = EventoSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+            serializer.save(usuario=self.request.user)
+
+#Comentarios
+from rest_framework import generics, permissions
+from .models import Comentario
+from .serializers import ComentarioSerializer
+
+class ComentarioListCreateView(generics.ListCreateAPIView):
+    queryset = Comentario.objects.all()
+    serializer_class = ComentarioSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        evento_id = self.kwargs['evento_id']
+        return Comentario.objects.filter(evento_id=evento_id)
+
+    def perform_create(self, serializer):
+        evento_id = self.kwargs['evento_id']
+        evento = Evento.objects.get(id=evento_id)
+        serializer.save(usuario=self.request.user, evento=evento)
+        #serializer.save(usuario=self.request.user)

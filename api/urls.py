@@ -6,8 +6,17 @@ from .views import GoogleLoginApi
 from .views import validate_token
 from .views import UserProfileView
 from rest_framework.documentation import include_docs_urls
+from .views import ComentarioListCreateView
+
+#Librerias para cruds
+from rest_framework.routers import DefaultRouter
+from .views import EventoViewSet
+
+router = DefaultRouter()
+router.register(r'events', EventoViewSet)
 
 urlpatterns = [
+    path('', include(router.urls)),
     path('register/', UserRegisterView.as_view(), name='register'),
     path('user/<int:pk>/', UserDetailView.as_view(), name='user-detail'),
     # Session tokens
@@ -19,5 +28,7 @@ urlpatterns = [
     #user profile
     path('user/profile/', UserProfileView.as_view(), name='user_profile'),
     #Documentation
-    path('docs/', include_docs_urls(title='LEO API'))
+    path('docs/', include_docs_urls(title='LEO API')),
+    #Comentarios
+    path('eventos/<int:evento_id>/comentarios/', ComentarioListCreateView.as_view(), name='comentarios-list-create')
 ]

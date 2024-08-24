@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from .models import CustomUser
+#Comentario y evento
+from .models import Evento, Comentario
 
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -41,3 +43,26 @@ class CustomUserSerializer(serializers.ModelSerializer):
 class AuthSerializer(serializers.Serializer):
     code = serializers.CharField(required=False)
     error = serializers.CharField(required=False)
+
+#Comentario serializer
+class ComentarioSerializer(serializers.ModelSerializer):
+    usuario = CustomUserSerializer(read_only=True)
+    class Meta:
+        model = Comentario
+        fields = ['id', 'comentario', 'evento', 'usuario', 'created_at', 'updated_at']
+        extra_kwargs = {
+            'evento': {'required': False},
+            'usuario': {'required': False},
+            'created_at': {'read_only': True},
+            'updated_at': {'read_only': True},
+        }
+
+#Evento serializer
+class EventoSerializer(serializers.ModelSerializer):
+    comentarios = ComentarioSerializer(many=True, read_only=True)
+    usuario = CustomUserSerializer(read_only=True)
+
+    class Meta:
+        model = Evento
+        fields = ['id', 'nombre', 'descripcion', 'usuario', 'comentarios', 'created_at', 'updated_at']
+        read_only_fields = ['usuario', 'created_at', 'updated_at']

@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.core.validators import MaxLengthValidator
+from django.utils import timezone
 
 # Create your models here.
 class CustomUserManager(BaseUserManager):
@@ -48,3 +49,27 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
+
+
+# Evento
+class Evento(models.Model):
+    nombre = models.CharField(max_length=100)
+    descripcion = models.TextField()
+    usuario = models.ForeignKey(CustomUser, related_name='eventos', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.nombre
+
+
+# Comentario
+class Comentario(models.Model):
+    comentario = models.TextField()
+    evento = models.ForeignKey(Evento, related_name='comentarios', on_delete=models.CASCADE)
+    usuario = models.ForeignKey(CustomUser, related_name='comentarios', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Comentario de {self.usuario} en {self.evento}"
