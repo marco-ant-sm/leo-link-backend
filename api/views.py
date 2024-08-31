@@ -210,3 +210,13 @@ class ComentarioListCreateView(generics.ListCreateAPIView):
         evento = Evento.objects.get(id=evento_id)
         serializer.save(usuario=self.request.user, evento=evento)
         #serializer.save(usuario=self.request.user)
+
+#Comentarios delete
+class ComentarioDetailView(generics.RetrieveDestroyAPIView):
+    queryset = Comentario.objects.all()
+    serializer_class = ComentarioSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        evento_id = self.kwargs['evento_id']
+        return Comentario.objects.filter(evento_id=evento_id)

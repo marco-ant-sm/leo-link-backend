@@ -6,7 +6,7 @@ from .views import GoogleLoginApi
 from .views import validate_token
 from .views import UserProfileView
 from rest_framework.documentation import include_docs_urls
-from .views import ComentarioListCreateView
+from .views import ComentarioListCreateView, ComentarioDetailView
 
 #Librerias para cruds
 from rest_framework.routers import DefaultRouter
@@ -30,5 +30,6 @@ urlpatterns = [
     #Documentation
     path('docs/', include_docs_urls(title='LEO API')),
     #Comentarios
-    path('eventos/<int:evento_id>/comentarios/', ComentarioListCreateView.as_view(), name='comentarios-list-create')
+    path('eventos/<int:evento_id>/comentarios/', ComentarioListCreateView.as_view(), name='comentarios-list-create'),
+    path('eventos/<int:evento_id>/comentarios/<int:pk>/', ComentarioDetailView.as_view(), name='comentario-detail'),
 ]
