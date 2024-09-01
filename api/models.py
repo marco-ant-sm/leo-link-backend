@@ -73,3 +73,15 @@ class Comentario(models.Model):
 
     def __str__(self):
         return f"Comentario de {self.usuario} en {self.evento}"
+    
+#Asistencia a eventos
+class Asistencia(models.Model):
+    usuario = models.ForeignKey(CustomUser, related_name='asistencias', on_delete=models.CASCADE)
+    evento = models.ForeignKey(Evento, related_name='asistencias', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+
+    class Meta:
+        unique_together = ('usuario', 'evento')  # Asegura que un usuario no pueda asistir al mismo evento más de una vez
+
+    def __str__(self):
+        return f"{self.usuario} asistirá a {self.evento}"

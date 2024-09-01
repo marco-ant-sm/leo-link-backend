@@ -220,3 +220,36 @@ class ComentarioDetailView(generics.RetrieveDestroyAPIView):
     def get_queryset(self):
         evento_id = self.kwargs['evento_id']
         return Comentario.objects.filter(evento_id=evento_id)
+
+
+#Vista para crear y eliminar asistencias.
+from .serializers import AsistenciaSerializer
+from .models import Asistencia
+
+@api_view(['POST', 'DELETE'])
+def asistencia_view(request, evento_id):
+    # Verifica que el usuario esté autenticado
+    if not request.user.is_authenticated:
+        return Response({'error': 'No autenticado'}, status=status.HTTP_401_UNAUTHORIZED)
+    
+    try:
+        evento = Evento.objects.get(id=evento_id)
+    except Evento.DoesNotExist:
+        return Response({'error': 'Evento no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+    
+    if request.method == 'POST':
+        if Asistencia.objects.filter(usuario=request.user, evento=evento).exists():
+            return Response({'error': 'Ya has confirmado tu asistencia a este evento'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        asistencia = Asistencia.objects.create(usuario=request.user, evento=evento)
+        serializer = AsistenciaSerializer(asistencia)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    elif request.method == 'DELETE':
+        try:
+            asistencia = Asistencia.objects.get(usuario=request.user, evento=evento)
+        except Asistencia.DoesNotExist:
+            return Response({'error': 'No tienes una asistencia confirmada para este evento'}, status=status.HTTP_404_NOT_FOUND)
+        
+        asistencia.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

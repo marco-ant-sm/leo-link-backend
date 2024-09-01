@@ -7,6 +7,8 @@ from .views import validate_token
 from .views import UserProfileView
 from rest_framework.documentation import include_docs_urls
 from .views import ComentarioListCreateView, ComentarioDetailView
+#Crear y eliminar asistencias
+from .views import EventoViewSet, asistencia_view
 
 #Librerias para cruds
 from rest_framework.routers import DefaultRouter
@@ -32,4 +34,6 @@ urlpatterns = [
     #Comentarios
     path('eventos/<int:evento_id>/comentarios/', ComentarioListCreateView.as_view(), name='comentarios-list-create'),
     path('eventos/<int:evento_id>/comentarios/<int:pk>/', ComentarioDetailView.as_view(), name='comentario-detail'),
+    #Asistencias
+    path('events/<int:evento_id>/asistencia/', asistencia_view, name='asistencia_view'),
 ]

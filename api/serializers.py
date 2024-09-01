@@ -2,6 +2,8 @@ from rest_framework import serializers
 from .models import CustomUser
 #Comentario y evento
 from .models import Evento, Comentario
+from .models import Asistencia
+
 
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -61,8 +63,30 @@ class ComentarioSerializer(serializers.ModelSerializer):
 class EventoSerializer(serializers.ModelSerializer):
     comentarios = ComentarioSerializer(many=True, read_only=True)
     usuario = CustomUserSerializer(read_only=True)
+    numero_asistentes = serializers.SerializerMethodField()
+    asistido_por_usuario = serializers.SerializerMethodField()
 
     class Meta:
         model = Evento
-        fields = ['id', 'nombre', 'descripcion', 'usuario', 'comentarios', 'created_at', 'updated_at']
+        fields = ['id', 'nombre', 'descripcion', 'usuario', 'comentarios', 'created_at', 'updated_at', 'numero_asistentes', 'asistido_por_usuario']
         read_only_fields = ['usuario', 'created_at', 'updated_at']
+    
+    def get_numero_asistentes(self, obj):
+        return obj.asistencias.count()
+    
+    def get_asistido_por_usuario(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return Asistencia.objects.filter(usuario=request.user, evento=obj).exists()
+        return False
+
+
+#Asistencia serializer
+class AsistenciaSerializer(serializers.ModelSerializer):
+    usuario = CustomUserSerializer(read_only=True)
+    evento = EventoSerializer(read_only=True)
+
+    class Meta:
+        model = Asistencia
+        fields = ['id', 'usuario', 'evento', 'created_at']
+        read_only_fields = ['created_at']
