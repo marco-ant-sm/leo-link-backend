@@ -190,6 +190,25 @@ class EventoViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
             serializer.save(usuario=self.request.user)
+    
+    def perform_update(self, serializer):
+        instance = self.get_object()
+        remove_image = self.request.data.get('eliminar_imagen', False)
+        new_image = self.request.FILES.get('imagen', None)
+
+        # Caso 2: Eliminar la imagen existente si se seleccionó el checkbox
+        if remove_image and instance.imagen:
+            instance.imagen.delete()
+            instance.imagen = None  # Asegurarse de que la imagen se elimine de la base de datos también
+
+        # Caso 3: Reemplazar la imagen existente por una nueva
+        if new_image:
+            if instance.imagen:  # Si existe una imagen anterior
+                instance.imagen.delete()  # Eliminar la imagen anterior
+            instance.imagen = new_image  # Asignar la nueva imagen
+
+        # Caso 1: Agregar o mantener la imagen según lo que se haya subido
+        serializer.save(usuario=self.request.user, imagen=instance.imagen)
 
 #Comentarios
 from rest_framework import generics, permissions

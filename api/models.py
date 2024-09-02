@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.core.validators import MaxLengthValidator
 from django.utils import timezone
+from django.utils.text import slugify
+import os
 
 # Create your models here.
 class CustomUserManager(BaseUserManager):
@@ -50,6 +52,18 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.email
 
+#Funcion para crear nombres de imagenes unicos
+def event_image_upload_path(instance, filename):
+    # Obtener la extensión del archivo
+    extension = os.path.splitext(filename)[1]
+    # Crear un nombre único usando la fecha y hora actuales y el nombre del archivo original
+    timestamp = timezone.now().strftime('%Y%m%d%H%M%S')
+    # Crear un nombre seguro y limpio para la imagen (evita caracteres no permitidos)
+    safe_filename = slugify(os.path.splitext(filename)[0])
+    # Combinar timestamp y nombre seguro con la extensión original
+    new_filename = f"{timestamp}_{safe_filename}{extension}"
+    # Devolver la ruta final del archivo
+    return os.path.join('event_images', new_filename)
 
 # Evento
 class Evento(models.Model):
@@ -58,9 +72,17 @@ class Evento(models.Model):
     usuario = models.ForeignKey(CustomUser, related_name='eventos', on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(auto_now=True)
+    imagen = models.ImageField(upload_to=event_image_upload_path, blank=True, null=True)
 
     def __str__(self):
         return self.nombre
+    
+    def delete(self, *args, **kwargs):
+        # Si existe una imagen, elimina el archivo antes de eliminar el evento
+        if self.imagen:
+            if os.path.isfile(self.imagen.path):
+                os.remove(self.imagen.path)
+        super().delete(*args, **kwargs)
 
 
 # Comentario

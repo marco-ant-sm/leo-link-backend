@@ -68,8 +68,11 @@ class EventoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Evento
-        fields = ['id', 'nombre', 'descripcion', 'usuario', 'comentarios', 'created_at', 'updated_at', 'numero_asistentes', 'asistido_por_usuario']
+        fields = ['id', 'nombre', 'descripcion', 'usuario', 'comentarios', 'created_at', 'updated_at', 'numero_asistentes', 'asistido_por_usuario', 'imagen']
         read_only_fields = ['usuario', 'created_at', 'updated_at']
+        extra_kwargs = {
+            'imagen': {'required': False, 'allow_null': True}
+        }
     
     def get_numero_asistentes(self, obj):
         return obj.asistencias.count()
