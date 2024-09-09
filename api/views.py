@@ -272,3 +272,43 @@ def asistencia_view(request, evento_id):
         
         asistencia.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+#Categorias de eventos
+from api.serializers import CategoriaEventoSerializer, CustomUserSerializer
+from api.models import CategoriaEvento
+
+#Obtener categorias de eventos
+class CategoriaEventoListView(generics.ListAPIView):
+    queryset = CategoriaEvento.objects.all()
+    serializer_class = CategoriaEventoSerializer
+
+#Obtener categorias de usuario
+@api_view(['GET'])
+def get_user_categories(request):
+    if not request.user.is_authenticated:
+        return Response({'detail': 'Authentication credentials were not provided.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    user = request.user
+    serializer = CustomUserSerializer(user)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+#Modificar categorias de usuario
+@api_view(['PATCH'])
+def update_user_categories(request):
+    if not request.user.is_authenticated:
+        return Response({'detail': 'Authentication credentials were not provided.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    user = request.user
+    categorias_ids = request.data.get('categorias_ids', [])
+
+    try:
+        categorias = CategoriaEvento.objects.filter(id__in=categorias_ids)
+    except CategoriaEvento.DoesNotExist:
+        return Response({'detail': 'Some categories do not exist.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    user.categorias_preferidas.set(categorias)
+    user.save()
+
+    serializer = CustomUserSerializer(user)
+    return Response(serializer.data, status=status.HTTP_200_OK)

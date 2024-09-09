@@ -6,6 +6,17 @@ from django.utils.text import slugify
 import os
 
 # Create your models here.
+
+
+#Categorias de eventos
+class CategoriaEvento(models.Model):
+    nombre = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.nombre
+    
+
+#Usuarios
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
@@ -43,6 +54,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     ]
     permiso_u = models.CharField(max_length=20, choices=PERMISO_CHOICES, default='admin')
     imagen = models.ImageField(upload_to='user_images/', blank=True, null=True)
+    categorias_preferidas = models.ManyToManyField(CategoriaEvento, blank=True, related_name='usuarios')
 
     objects = CustomUserManager()
 
@@ -71,6 +83,7 @@ class Evento(models.Model):
     descripcion = models.TextField()
     usuario = models.ForeignKey(CustomUser, related_name='eventos', on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
+    categorias = models.ManyToManyField(CategoriaEvento, related_name='eventos')
     updated_at = models.DateTimeField(auto_now=True)
     imagen = models.ImageField(upload_to=event_image_upload_path, blank=True, null=True)
 

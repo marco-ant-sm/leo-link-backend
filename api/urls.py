@@ -9,6 +9,8 @@ from rest_framework.documentation import include_docs_urls
 from .views import ComentarioListCreateView, ComentarioDetailView
 #Crear y eliminar asistencias
 from .views import EventoViewSet, asistencia_view
+#categorias de eventos 
+from api.views import CategoriaEventoListView, get_user_categories, update_user_categories
 
 #Librerias para cruds
 from rest_framework.routers import DefaultRouter
@@ -36,4 +38,8 @@ urlpatterns = [
     path('eventos/<int:evento_id>/comentarios/<int:pk>/', ComentarioDetailView.as_view(), name='comentario-detail'),
     #Asistencias
     path('events/<int:evento_id>/asistencia/', asistencia_view, name='asistencia_view'),
+    #Categorias de eventos
+    path('categories/', CategoriaEventoListView.as_view(), name='categoria_evento_list'),
+    path('user/categories/', get_user_categories, name='get_user_categories'),
+    path('user/update-categories/', update_user_categories, name='update_user_categories'),
 ]
