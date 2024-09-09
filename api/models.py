@@ -84,6 +84,7 @@ class Evento(models.Model):
     usuario = models.ForeignKey(CustomUser, related_name='eventos', on_delete=models.CASCADE)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     categorias = models.ManyToManyField(CategoriaEvento, related_name='eventos')
+    categoria_p = models.CharField(max_length=100, blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True)
     imagen = models.ImageField(upload_to=event_image_upload_path, blank=True, null=True)
 

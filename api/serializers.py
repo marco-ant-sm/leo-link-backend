@@ -3,6 +3,7 @@ from .models import CustomUser
 #Comentario y evento
 from .models import Evento, Comentario
 from .models import Asistencia, CategoriaEvento
+from rest_framework.exceptions import ValidationError
 
 
 class CategoriaEventoSerializer(serializers.ModelSerializer):
@@ -87,11 +88,12 @@ class EventoSerializer(serializers.ModelSerializer):
     categorias_ids = serializers.SerializerMethodField()
     numero_asistentes = serializers.SerializerMethodField()
     asistido_por_usuario = serializers.SerializerMethodField()
+    categoria_p = serializers.CharField(max_length=100, required=False, allow_blank=True)
 
 
     class Meta:
         model = Evento
-        fields = ['id', 'nombre', 'descripcion', 'usuario', 'comentarios', 'categorias', 'categorias_ids', 'created_at', 'updated_at', 'numero_asistentes', 'asistido_por_usuario', 'imagen']
+        fields = ['id', 'nombre', 'descripcion', 'usuario', 'comentarios', 'categorias', 'categorias_ids', 'categoria_p', 'created_at', 'updated_at', 'numero_asistentes', 'asistido_por_usuario', 'imagen']
         read_only_fields = ['usuario', 'created_at', 'updated_at']
         extra_kwargs = {
             'imagen': {'required': False, 'allow_null': True}
@@ -110,6 +112,70 @@ class EventoSerializer(serializers.ModelSerializer):
         if request and request.user.is_authenticated:
             return Asistencia.objects.filter(usuario=request.user, evento=obj).exists()
         return False
+    
+    #Funcion para la correcta asociacion de categorias en la creacion del evento
+    def create(self, validated_data):
+        categoria_p_name = self.context['request'].data.get('categoria_p')
+        categorias_ids = self.context['request'].data.get('categorias_ids', [])
+        
+        if not categoria_p_name:
+            raise ValidationError("La categoría principal es obligatoria.")
+
+        # Obtén o crea la categoría principal
+        categoria_p = CategoriaEvento.objects.filter(nombre=categoria_p_name).first()
+        if not categoria_p:
+            raise ValidationError("La categoría principal no existe.")
+
+        # Crea el evento
+        instance = super().create(validated_data)
+        
+        # Agrega la categoría principal a la lista de categorías asociadas si no está ya incluida
+        categorias_ids = [int(id) for id in categorias_ids if id.isdigit()]
+        if categoria_p.id not in categorias_ids:
+            categorias_ids.append(categoria_p.id)
+
+        # Configura las categorías del evento
+        categorias = CategoriaEvento.objects.filter(id__in=categorias_ids)
+        instance.categorias.set(categorias)
+        instance.save()
+        
+        # Establece el nombre de la categoría principal
+        instance.categoria_p = categoria_p_name
+        instance.save()
+        
+        return instance
+    
+    #Editar evento
+    def update(self, instance, validated_data):
+        categoria_p_name = self.context['request'].data.get('categoria_p')
+        categorias_ids = self.context['request'].data.get('categorias_ids', [])
+
+        if not categoria_p_name:
+            raise ValidationError("La categoría principal es obligatoria.")
+
+        # Obtén o crea la categoría principal
+        categoria_p = CategoriaEvento.objects.filter(nombre=categoria_p_name).first()
+        if not categoria_p:
+            raise ValidationError("La categoría principal no existe.")
+
+        # Actualiza el evento
+        instance = super().update(instance, validated_data)
+
+        # Agrega la categoría principal a la lista de categorías asociadas si no está ya incluida
+        categorias_ids = [int(id) for id in categorias_ids if id.isdigit()]
+        if categoria_p.id not in categorias_ids:
+            categorias_ids.append(categoria_p.id)
+
+        # Configura las categorías del evento
+        categorias = CategoriaEvento.objects.filter(id__in=categorias_ids)
+        instance.categorias.set(categorias)
+        instance.save()
+        
+        # Establece el nombre de la categoría principal
+        instance.categoria_p = categoria_p_name
+        instance.save()
+        
+        return instance
 
 
 #Asistencia serializer
