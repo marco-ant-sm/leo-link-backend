@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import CustomUser
 #Comentario y evento
 from .models import Evento, Comentario
-from .models import Asistencia, CategoriaEvento
+from .models import Asistencia, CategoriaEvento, Notificacion
 from rest_framework.exceptions import ValidationError
 
 
@@ -187,3 +187,9 @@ class AsistenciaSerializer(serializers.ModelSerializer):
         model = Asistencia
         fields = ['id', 'usuario', 'evento', 'created_at']
         read_only_fields = ['created_at']
+
+#Notificaciones
+class NotificacionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notificacion
+        fields = ['usuario', 'evento', 'mensaje', 'leida', 'created_at']

@@ -121,3 +121,15 @@ class Asistencia(models.Model):
 
     def __str__(self):
         return f"{self.usuario} asistirá a {self.evento}"
+    
+
+#Modelo notificacion
+class Notificacion(models.Model):
+    usuario = models.ForeignKey(CustomUser, related_name='notificaciones', on_delete=models.CASCADE)
+    evento = models.ForeignKey(Evento, related_name='notificaciones', on_delete=models.CASCADE)
+    mensaje = models.CharField(max_length=255)
+    leida = models.BooleanField(default=False)
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+
+    def __str__(self):
+        return f"Notificación para {self.usuario} sobre {self.evento}"
