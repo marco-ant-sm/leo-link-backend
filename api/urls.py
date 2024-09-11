@@ -11,6 +11,8 @@ from .views import ComentarioListCreateView, ComentarioDetailView
 from .views import EventoViewSet, asistencia_view
 #categorias de eventos 
 from api.views import CategoriaEventoListView, get_user_categories, update_user_categories
+#Notificaciones
+from api.views import NotificacionesUsuarioView
 
 #Librerias para cruds
 from rest_framework.routers import DefaultRouter
@@ -42,4 +44,6 @@ urlpatterns = [
     path('categories/', CategoriaEventoListView.as_view(), name='categoria_evento_list'),
     path('user/categories/', get_user_categories, name='get_user_categories'),
     path('user/update-categories/', update_user_categories, name='update_user_categories'),
+    #Notificaciones
+    path('notificaciones/', NotificacionesUsuarioView.as_view(), name='notificaciones-usuario'),
 ]

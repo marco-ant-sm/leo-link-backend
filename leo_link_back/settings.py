@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure--&(mu^0z=4_#9f%c!vb%0!&lj$z=&liwwmad$_s+kz)cx__t+#
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 
 # Application definition
@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'coreapi',
+    'channels',
     'api'
 ]
 
@@ -73,7 +74,12 @@ TEMPLATES = [
     },
 ]
 
+
+# Para aplicaciones WSGI (HTTP tradicional)
 WSGI_APPLICATION = 'leo_link_back.wsgi.application'
+
+# Notificaciones Para aplicaciones ASGI (WebSocket y funcionalidades asíncronas)
+ASGI_APPLICATION = 'leo_link_back.asgi.application'
 
 
 # Database
@@ -189,3 +195,11 @@ GOOGLE_OAUTH2_CLIENT_SECRET = os.getenv('GOOGLE_OAUTH2_CLIENT_SECRET')
 #Load images
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+#Notificaciones config para channel layers
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    }
+}

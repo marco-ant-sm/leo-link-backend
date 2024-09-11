@@ -179,9 +179,14 @@ class UserProfileView(generics.RetrieveAPIView):
 
 #Evento crud
 from .serializers import EventoSerializer
-from .models import Evento
+from .models import Evento, Notificacion
 from rest_framework import viewsets
 from rest_framework.exceptions import ValidationError
+
+#Notificaciones
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+from api.serializers import NotificacionSerializer
 
 class EventoViewSet(viewsets.ModelViewSet):
     queryset = Evento.objects.all()
@@ -189,7 +194,8 @@ class EventoViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
-            serializer.save(usuario=self.request.user)
+            evento = serializer.save(usuario=self.request.user)
+            self.enviar_notificaciones(evento)
     
     def perform_update(self, serializer):
         instance = self.get_object()
@@ -209,6 +215,32 @@ class EventoViewSet(viewsets.ModelViewSet):
 
         # Caso 1: Agregar o mantener la imagen según lo que se haya subido
         serializer.save(usuario=self.request.user, imagen=instance.imagen)
+
+    def enviar_notificaciones(self, evento):
+        # Obtener las categorías del evento
+        categorias_evento = evento.categorias.all()
+        
+        # Buscar usuarios que tengan esas categorías en su perfil
+        usuarios_interesados = CustomUser.objects.filter(categorias_preferidas__in=categorias_evento).distinct()
+
+        # Crear una notificación para cada usuario interesado
+        for usuario in usuarios_interesados:
+            mensaje = f"Se ha agregado un evento de tu interés: {evento.nombre}"
+            Notificacion.objects.create(
+                usuario=usuario,
+                evento=evento,
+                mensaje=mensaje
+            )
+
+            # Notificar en tiempo real a través de WebSocket
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f"user_{usuario.id}",  # Cada usuario tendrá su propio grupo de WebSocket
+                {
+                    'type': 'send_notification',
+                    'message': f"Nuevo evento: {evento.nombre} en la categoría {evento.categoria_p}",
+                }
+            )
 
 #Comentarios
 from rest_framework import generics, permissions
@@ -312,3 +344,15 @@ def update_user_categories(request):
 
     serializer = CustomUserSerializer(user)
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+#obtener notificaciones
+
+class NotificacionesUsuarioView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Obtener las notificaciones del usuario autenticado
+        notificaciones = Notificacion.objects.filter(usuario=request.user).order_by('-created_at')
+        serializer = NotificacionSerializer(notificaciones, many=True)
+        return Response(serializer.data)
