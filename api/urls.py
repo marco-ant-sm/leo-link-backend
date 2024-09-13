@@ -12,7 +12,7 @@ from .views import EventoViewSet, asistencia_view
 #categorias de eventos 
 from api.views import CategoriaEventoListView, get_user_categories, update_user_categories
 #Notificaciones
-from api.views import NotificacionesUsuarioView
+from api.views import NotificacionesUsuarioView, MarcarNotificacionesLeidasView
 
 #Librerias para cruds
 from rest_framework.routers import DefaultRouter
@@ -46,4 +46,6 @@ urlpatterns = [
     path('user/update-categories/', update_user_categories, name='update_user_categories'),
     #Notificaciones
     path('notificaciones/', NotificacionesUsuarioView.as_view(), name='notificaciones-usuario'),
+    #Marcar notificaciones como leidas
+    path('notificaciones/marcar-leidas/', MarcarNotificacionesLeidasView.as_view(), name='marcar-notificaciones-leidas'),
 ]

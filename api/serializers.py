@@ -118,6 +118,7 @@ class EventoSerializer(serializers.ModelSerializer):
         categoria_p_name = self.context['request'].data.get('categoria_p')
         categorias_ids = self.context['request'].data.get('categorias_ids', [])
         
+        
         if not categoria_p_name:
             raise ValidationError("La categoría principal es obligatoria.")
 
@@ -128,9 +129,13 @@ class EventoSerializer(serializers.ModelSerializer):
 
         # Crea el evento
         instance = super().create(validated_data)
+
+        #transformar las categorias en lista
+        categorias_ids = categorias_ids.split(',')
         
         # Agrega la categoría principal a la lista de categorías asociadas si no está ya incluida
         categorias_ids = [int(id) for id in categorias_ids if id.isdigit()]
+
         if categoria_p.id not in categorias_ids:
             categorias_ids.append(categoria_p.id)
 
@@ -161,6 +166,9 @@ class EventoSerializer(serializers.ModelSerializer):
         # Actualiza el evento
         instance = super().update(instance, validated_data)
 
+        #transformar las categorias en lista
+        categorias_ids = categorias_ids.split(',')
+
         # Agrega la categoría principal a la lista de categorías asociadas si no está ya incluida
         categorias_ids = [int(id) for id in categorias_ids if id.isdigit()]
         if categoria_p.id not in categorias_ids:
@@ -190,6 +198,9 @@ class AsistenciaSerializer(serializers.ModelSerializer):
 
 #Notificaciones
 class NotificacionSerializer(serializers.ModelSerializer):
+    usuario = CustomUserSerializer(read_only=True)
+    evento = EventoSerializer(read_only=True)
     class Meta:
         model = Notificacion
         fields = ['usuario', 'evento', 'mensaje', 'leida', 'created_at']
+        read_only_fields = ['usuario', 'evento']

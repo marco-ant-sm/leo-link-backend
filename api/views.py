@@ -221,7 +221,7 @@ class EventoViewSet(viewsets.ModelViewSet):
         categorias_evento = evento.categorias.all()
         
         # Buscar usuarios que tengan esas categorías en su perfil
-        usuarios_interesados = CustomUser.objects.filter(categorias_preferidas__in=categorias_evento).distinct()
+        usuarios_interesados = CustomUser.objects.filter(categorias_preferidas__in=categorias_evento).exclude(id=evento.usuario.id).distinct()
 
         # Crear una notificación para cada usuario interesado
         for usuario in usuarios_interesados:
@@ -233,14 +233,14 @@ class EventoViewSet(viewsets.ModelViewSet):
             )
 
             # Notificar en tiempo real a través de WebSocket
-            channel_layer = get_channel_layer()
-            async_to_sync(channel_layer.group_send)(
-                f"user_{usuario.id}",  # Cada usuario tendrá su propio grupo de WebSocket
-                {
-                    'type': 'send_notification',
-                    'message': f"Nuevo evento: {evento.nombre} en la categoría {evento.categoria_p}",
-                }
-            )
+            # channel_layer = get_channel_layer()
+            # async_to_sync(channel_layer.group_send)(
+            #     f"user_{usuario.id}",  # Cada usuario tendrá su propio grupo de WebSocket
+            #     {
+            #         'type': 'send_notification',
+            #         'message': f"Nuevo evento: {evento.nombre} en la categoría {evento.categoria_p}",
+            #     }
+            # )
 
 #Comentarios
 from rest_framework import generics, permissions
@@ -347,7 +347,6 @@ def update_user_categories(request):
 
 
 #obtener notificaciones
-
 class NotificacionesUsuarioView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -356,3 +355,16 @@ class NotificacionesUsuarioView(APIView):
         notificaciones = Notificacion.objects.filter(usuario=request.user).order_by('-created_at')
         serializer = NotificacionSerializer(notificaciones, many=True)
         return Response(serializer.data)
+    
+#Marcar notificaciones de usuario como leidas
+class MarcarNotificacionesLeidasView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        # Obtener las notificaciones del usuario autenticado
+        notificaciones = Notificacion.objects.filter(usuario=request.user, leida=False)
+        
+        # Marcar todas las notificaciones como leídas
+        notificaciones.update(leida=True)
+
+        return Response({'message': 'Notificaciones marcadas como leídas'}, status=status.HTTP_200_OK)
