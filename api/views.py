@@ -233,7 +233,7 @@ class EventoViewSet(viewsets.ModelViewSet):
                 tipo_e=evento.tipo_e
             )
 
-            # Notificar en tiempo real a través de WebSocket dime dime
+            # Notificar en tiempo real a través de WebSocket
             # channel_layer = get_channel_layer()
             # async_to_sync(channel_layer.group_send)(
             #     f"user_{usuario.id}",  # Cada usuario tendrá su propio grupo de WebSocket
