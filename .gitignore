@@ -17,6 +17,9 @@ env/
 ENV/
 *.env
 
+#media
+media/
+
 # Archivos de configuración del entorno
 .env
 *.local

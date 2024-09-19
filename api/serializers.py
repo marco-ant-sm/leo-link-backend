@@ -9,7 +9,7 @@ from rest_framework.exceptions import ValidationError
 class CategoriaEventoSerializer(serializers.ModelSerializer):
     class Meta:
         model = CategoriaEvento
-        fields = ['id', 'nombre']
+        fields = ['id', 'nombre', 'tipo_e']
 
 
 
@@ -93,10 +93,11 @@ class EventoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Evento
-        fields = ['id', 'nombre', 'descripcion', 'usuario', 'comentarios', 'categorias', 'categorias_ids', 'categoria_p', 'created_at', 'updated_at', 'numero_asistentes', 'asistido_por_usuario', 'imagen']
+        fields = ['id', 'nombre', 'descripcion', 'usuario', 'comentarios', 'categorias', 'categorias_ids', 'categoria_p', 'created_at', 'updated_at', 'numero_asistentes', 'asistido_por_usuario', 'imagen', 'tipo_e', 'fecha_evento', 'hora_evento', 'host_evento', 'fecha_fin_evento', 'hora_fin_evento', 'lugar_evento', 'fecha_fin_beneficio']
         read_only_fields = ['usuario', 'created_at', 'updated_at']
         extra_kwargs = {
-            'imagen': {'required': False, 'allow_null': True}
+            'imagen': {'required': False, 'allow_null': True},
+            'fecha_fin_beneficio': {'required': False, 'allow_null': True}
         }
 
 
@@ -113,6 +114,28 @@ class EventoSerializer(serializers.ModelSerializer):
             return Asistencia.objects.filter(usuario=request.user, evento=obj).exists()
         return False
     
+
+    #Validar campos dependiendo del evento
+    def validate(self, data):
+        # Verifica si el tipo de evento es 'evento'
+        if data.get('tipo_e') == 'evento':
+            # Valida que los campos requeridos no estén vacíos
+            if not data.get('fecha_evento'):
+                raise serializers.ValidationError("La fecha del evento es obligatoria.")
+            if not data.get('hora_evento'):
+                raise serializers.ValidationError("La hora del evento es obligatoria.")
+            if not data.get('host_evento'):
+                raise serializers.ValidationError("El host del evento es obligatorio.")
+            if not data.get('fecha_fin_evento'):
+                raise serializers.ValidationError("La fecha de finalización es obligatoria.")
+            if not data.get('hora_fin_evento'):
+                raise serializers.ValidationError("La hora de finalización es obligatoria.")
+            if not data.get('lugar_evento'):
+                raise serializers.ValidationError("El lugar del evento es obligatorio.")
+        
+        return data
+    
+
     #Funcion para la correcta asociacion de categorias en la creacion del evento
     def create(self, validated_data):
         categoria_p_name = self.context['request'].data.get('categoria_p')
@@ -142,7 +165,6 @@ class EventoSerializer(serializers.ModelSerializer):
         # Configura las categorías del evento
         categorias = CategoriaEvento.objects.filter(id__in=categorias_ids)
         instance.categorias.set(categorias)
-        instance.save()
         
         # Establece el nombre de la categoría principal
         instance.categoria_p = categoria_p_name
@@ -177,7 +199,6 @@ class EventoSerializer(serializers.ModelSerializer):
         # Configura las categorías del evento
         categorias = CategoriaEvento.objects.filter(id__in=categorias_ids)
         instance.categorias.set(categorias)
-        instance.save()
         
         # Establece el nombre de la categoría principal
         instance.categoria_p = categoria_p_name
@@ -202,5 +223,5 @@ class NotificacionSerializer(serializers.ModelSerializer):
     evento = EventoSerializer(read_only=True)
     class Meta:
         model = Notificacion
-        fields = ['usuario', 'evento', 'mensaje', 'leida', 'created_at']
+        fields = ['usuario', 'evento', 'mensaje', 'leida', 'created_at', 'tipo_e']
         read_only_fields = ['usuario', 'evento']

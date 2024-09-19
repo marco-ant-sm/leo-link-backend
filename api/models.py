@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from django.core.validators import MaxLengthValidator
 from django.utils import timezone
 from django.utils.text import slugify
+from django.core.exceptions import ValidationError
 import os
 
 # Create your models here.
@@ -10,8 +11,16 @@ import os
 
 #Categorias de eventos
 class CategoriaEvento(models.Model):
-    nombre = models.CharField(max_length=50, unique=True)
+    TIPO_EVENTO_CHOICES = [
+        ('evento', 'Evento'),
+        ('practica', 'Práctica'),
+        ('beneficio', 'Beneficio'),
+        ('descuento', 'Descuento'),
+    ]
 
+    nombre = models.CharField(max_length=50, unique=True)
+    tipo_e = models.CharField(max_length=10, choices=TIPO_EVENTO_CHOICES, default='evento')
+    
     def __str__(self):
         return self.nombre
     
@@ -79,6 +88,7 @@ def event_image_upload_path(instance, filename):
 
 # Evento
 class Evento(models.Model):
+    #Campos generales
     nombre = models.CharField(max_length=100)
     descripcion = models.TextField()
     usuario = models.ForeignKey(CustomUser, related_name='eventos', on_delete=models.CASCADE)
@@ -88,8 +98,44 @@ class Evento(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     imagen = models.ImageField(upload_to=event_image_upload_path, blank=True, null=True)
 
+    #Tipo de evento
+    TIPO_EVENTO_CHOICES = [
+        ('evento', 'Evento'),
+        ('practica', 'Práctica Profesional'),
+        ('beneficio', 'Beneficio'),
+        ('descuento', 'Descuento'),
+    ]
+    tipo_e = models.CharField(max_length=20, choices=TIPO_EVENTO_CHOICES, default='evento')
+
+    #Campos de tipo Evento
+    fecha_evento = models.DateField(null=True, blank=True)
+    hora_evento = models.TimeField(null=True, blank=True)
+    host_evento_choices = [
+        ('Cucei', 'Cucei'),
+        ('Empresa', 'Empresa'),
+        ('Consejo estudiantil', 'Consejo Estudiantil'),
+        ('Docente', 'Docente'),
+    ]
+    host_evento = models.CharField(max_length=50, choices=host_evento_choices, null=True, blank=True)
+    fecha_fin_evento = models.DateField(null=True, blank=True)
+    hora_fin_evento = models.TimeField(null=True, blank=True)
+    lugar_evento = models.CharField(max_length=255, null=True, blank=True)
+
+    # Campos adicionales para el tipo 'beneficio'
+    fecha_fin_beneficio = models.DateField(null=True, blank=True)  # No es obligatoria
+
+    def clean(self):
+        # Verifica si el tipo es 'evento' y si los campos requeridos están presentes
+        if self.tipo_e == 'evento':
+            if not self.fecha_evento or not self.hora_evento or not self.host_evento or not self.fecha_fin_evento or not self.hora_fin_evento or not self.lugar_evento:
+                raise ValidationError("Todos los campos de evento deben ser completados.")
+
     def __str__(self):
         return self.nombre
+    
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
     
     def delete(self, *args, **kwargs):
         # Si existe una imagen, elimina el archivo antes de eliminar el evento
@@ -130,6 +176,15 @@ class Notificacion(models.Model):
     mensaje = models.CharField(max_length=255)
     leida = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now, editable=False)
+
+    # Define las mismas opciones que en CategoriaEvento y Evento
+    TIPO_EVENTO_CHOICES = [
+        ('evento', 'Evento'),
+        ('practica', 'Práctica Profesional'),
+        ('beneficio', 'Beneficio'),
+        ('descuento', 'Descuento'),
+    ]
+    tipo_e = models.CharField(max_length=20, choices=TIPO_EVENTO_CHOICES, default='evento')
 
     def __str__(self):
         return f"Notificación para {self.usuario} sobre {self.evento}"

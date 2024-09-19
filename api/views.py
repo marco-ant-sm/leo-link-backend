@@ -225,20 +225,21 @@ class EventoViewSet(viewsets.ModelViewSet):
 
         # Crear una notificación para cada usuario interesado
         for usuario in usuarios_interesados:
-            mensaje = f"Se ha agregado un evento de tu interés: {evento.nombre}"
+            mensaje = f"Se ha agregado { 'una' if str(evento.tipo_e) == 'practica' else 'un' } {str(evento.tipo_e)} de tu interés: {evento.nombre}"
             Notificacion.objects.create(
                 usuario=usuario,
                 evento=evento,
-                mensaje=mensaje
+                mensaje=mensaje,
+                tipo_e=evento.tipo_e
             )
 
-            # Notificar en tiempo real a través de WebSocket
+            # Notificar en tiempo real a través de WebSocket dime dime
             # channel_layer = get_channel_layer()
             # async_to_sync(channel_layer.group_send)(
             #     f"user_{usuario.id}",  # Cada usuario tendrá su propio grupo de WebSocket
             #     {
             #         'type': 'send_notification',
-            #         'message': f"Nuevo evento: {evento.nombre} en la categoría {evento.categoria_p}",
+            #         'message': f"Nuevo elemento de tu interes: {evento.nombre} en la categoría {evento.categoria_p}",
             #     }
             # )
 

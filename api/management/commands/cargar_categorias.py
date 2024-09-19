@@ -14,4 +14,14 @@ class Command(BaseCommand):
         for categoria in categorias:
             CategoriaEvento.objects.get_or_create(nombre=categoria)
 
+        # Categorías tipo beneficio
+        categorias_beneficios = [
+            'Becas y ayudas económicas', 'Posgrados y educación continuada', 'Licencias y permisos',
+            'Asesoría y orientación', 'Recursos académicos', 'Redes y contactos profesionales',
+            'Salud y bienestar', 'Servicios universitarios'
+        ]
+
+        for categoria in categorias_beneficios:
+            CategoriaEvento.objects.get_or_create(nombre=categoria, defaults={'tipo_e': 'beneficio'})
+
         self.stdout.write(self.style.SUCCESS('Categorías de eventos cargadas exitosamente.'))
