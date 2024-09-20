@@ -15,7 +15,7 @@ from rest_framework.views import APIView
 from .serializers import AuthSerializer
 from .services import get_user_data
 from .models import CustomUser 
-
+import os
 
 class UserRegisterView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
@@ -369,3 +369,36 @@ class MarcarNotificacionesLeidasView(APIView):
         notificaciones.update(leida=True)
 
         return Response({'message': 'Notificaciones marcadas como leídas'}, status=status.HTTP_200_OK)
+    
+@api_view(['PATCH'])
+def update_user_profile(request):
+    if not request.user.is_authenticated:
+        return Response({'detail': 'Authentication credentials were not provided.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    user = request.user
+    serializer = CustomUserSerializer(user, data=request.data, partial=True)
+
+    if serializer.is_valid():
+        # Manejo para eliminar la imagen
+        remove_image = request.data.get('eliminar_imagen', False)
+        new_image = request.FILES.get('imagen', None)
+
+        # Eliminar la imagen existente si se seleccionó
+        if remove_image and user.imagen:
+            if os.path.isfile(user.imagen.path):
+                os.remove(user.imagen.path)
+            user.imagen = None  # Eliminar de la base de datos
+
+        # Si se proporciona una nueva imagen, manejarla
+        if new_image:
+            if user.imagen:  # Si ya existe una imagen anterior
+                if os.path.isfile(user.imagen.path):
+                    os.remove(user.imagen.path)  # Eliminar la imagen anterior
+            user.imagen = new_image  # Asignar la nueva imagen
+
+        # Guardar los cambios en el usuario
+        serializer.save()  # Guarda los cambios que incluye la descripción y la imagen
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    # Aquí se informa sobre los errores específicos en la validación
+    return Response({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)

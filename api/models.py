@@ -23,7 +23,19 @@ class CategoriaEvento(models.Model):
     
     def __str__(self):
         return self.nombre
-    
+
+
+#Funcion para crear nombres de imagenes unicos
+def user_image_upload_path(instance, filename):
+    # Obtener la extensión del archivo
+    extension = os.path.splitext(filename)[1]
+    # Crear un nombre único usando la fecha y hora actuales y el nombre del archivo original
+    timestamp = timezone.now().strftime('%Y%m%d%H%M%S')
+    # Crear un nombre seguro y limpio para la imagen
+    safe_filename = slugify(os.path.splitext(filename)[0])
+    # Combinar timestamp y nombre seguro con la extensión original
+    new_filename = f"{timestamp}_{safe_filename}{extension}"
+    return os.path.join('user_images', new_filename)    
 
 #Usuarios
 class CustomUserManager(BaseUserManager):
@@ -62,7 +74,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         ('empresa', 'Empresa'),
     ]
     permiso_u = models.CharField(max_length=20, choices=PERMISO_CHOICES, default='admin')
-    imagen = models.ImageField(upload_to='user_images/', blank=True, null=True)
+    imagen = models.ImageField(upload_to=user_image_upload_path, blank=True, null=True)
     categorias_preferidas = models.ManyToManyField(CategoriaEvento, blank=True, related_name='usuarios')
 
     objects = CustomUserManager()
@@ -72,6 +84,13 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
+    
+    def delete(self, *args, **kwargs):
+        # Si existe una imagen, elimina el archivo antes de eliminar el usuario
+        if self.imagen:
+            if os.path.isfile(self.imagen.path):
+                os.remove(self.imagen.path)
+        super().delete(*args, **kwargs)
 
 #Funcion para crear nombres de imagenes unicos
 def event_image_upload_path(instance, filename):

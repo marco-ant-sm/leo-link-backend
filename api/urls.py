@@ -10,7 +10,7 @@ from .views import ComentarioListCreateView, ComentarioDetailView
 #Crear y eliminar asistencias
 from .views import EventoViewSet, asistencia_view
 #categorias de eventos 
-from api.views import CategoriaEventoListView, get_user_categories, update_user_categories
+from api.views import CategoriaEventoListView, get_user_categories, update_user_categories, update_user_profile
 #Notificaciones
 from api.views import NotificacionesUsuarioView, MarcarNotificacionesLeidasView
 
@@ -48,4 +48,5 @@ urlpatterns = [
     path('notificaciones/', NotificacionesUsuarioView.as_view(), name='notificaciones-usuario'),
     #Marcar notificaciones como leidas
     path('notificaciones/marcar-leidas/', MarcarNotificacionesLeidasView.as_view(), name='marcar-notificaciones-leidas'),
+    path('user/update-user-profile/', update_user_profile, name='update_user_profile'),
 ]
