@@ -5,6 +5,7 @@ class Command(BaseCommand):
     help = 'Carga las categorías de eventos por defecto'
 
     def handle(self, *args, **kwargs):
+        #Categorias evento
         categorias = [
             'Deportivo', 'Salud', 'Recreativo', 'Académico', 'Laboral',
             'Informática', 'Ocio', 'Comercio', 'Química', 'Industrial',
@@ -23,5 +24,15 @@ class Command(BaseCommand):
 
         for categoria in categorias_beneficios:
             CategoriaEvento.objects.get_or_create(nombre=categoria, defaults={'tipo_e': 'beneficio'})
+
+        #Categorias tipo descuento
+        categorias_descuento = [
+            'Transporte', 'Entretenimiento', 'Alimentos', 'Servicios', 
+            'Educación', 'Tecnología', 'Bienestar Personal', 'Viajes', 
+            'Libros y materiales', 'Moda y estética', 'Hogar'
+        ]
+
+        for categoria in categorias_descuento:
+            CategoriaEvento.objects.get_or_create(nombre=categoria, defaults={'tipo_e': 'descuento'})
 
         self.stdout.write(self.style.SUCCESS('Categorías de eventos cargadas exitosamente.'))

@@ -145,7 +145,7 @@ AUTH_USER_MODEL = 'api.CustomUser'
 from datetime import timedelta
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=2),
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=4),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': True,

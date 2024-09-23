@@ -193,6 +193,13 @@ class EventoViewSet(viewsets.ModelViewSet):
     serializer_class = EventoSerializer
     permission_classes = [IsAuthenticated]
 
+
+    def list(self, request, *args, **kwargs):
+        # Obtener los eventos ordenados por created_at de manera descendente
+        queryset = self.queryset.order_by('-created_at')
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
     def perform_create(self, serializer):
             evento = serializer.save(usuario=self.request.user)
             self.enviar_notificaciones(evento)
@@ -369,7 +376,9 @@ class MarcarNotificacionesLeidasView(APIView):
         notificaciones.update(leida=True)
 
         return Response({'message': 'Notificaciones marcadas como leídas'}, status=status.HTTP_200_OK)
-    
+
+
+#Actualizar Perfil del Usuario
 @api_view(['PATCH'])
 def update_user_profile(request):
     if not request.user.is_authenticated:
@@ -402,3 +411,4 @@ def update_user_profile(request):
 
     # Aquí se informa sobre los errores específicos en la validación
     return Response({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
