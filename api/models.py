@@ -143,6 +143,9 @@ class Evento(models.Model):
     # Campos adicionales para el tipo 'beneficio'
     fecha_fin_beneficio = models.DateField(null=True, blank=True)  # No es obligatoria
 
+    # Campos adicionales para el tipo 'descuento'
+    fecha_fin_descuento = models.DateField(null=True, blank=True)  # No es obligatoria
+
     def clean(self):
         # Verifica si el tipo es 'evento' y si los campos requeridos están presentes
         if self.tipo_e == 'evento':

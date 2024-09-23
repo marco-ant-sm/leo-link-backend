@@ -93,11 +93,12 @@ class EventoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Evento
-        fields = ['id', 'nombre', 'descripcion', 'usuario', 'comentarios', 'categorias', 'categorias_ids', 'categoria_p', 'created_at', 'updated_at', 'numero_asistentes', 'asistido_por_usuario', 'imagen', 'tipo_e', 'fecha_evento', 'hora_evento', 'host_evento', 'fecha_fin_evento', 'hora_fin_evento', 'lugar_evento', 'fecha_fin_beneficio']
+        fields = ['id', 'nombre', 'descripcion', 'usuario', 'comentarios', 'categorias', 'categorias_ids', 'categoria_p', 'created_at', 'updated_at', 'numero_asistentes', 'asistido_por_usuario', 'imagen', 'tipo_e', 'fecha_evento', 'hora_evento', 'host_evento', 'fecha_fin_evento', 'hora_fin_evento', 'lugar_evento', 'fecha_fin_beneficio', 'fecha_fin_descuento']
         read_only_fields = ['usuario', 'created_at', 'updated_at']
         extra_kwargs = {
             'imagen': {'required': False, 'allow_null': True},
-            'fecha_fin_beneficio': {'required': False, 'allow_null': True}
+            'fecha_fin_beneficio': {'required': False, 'allow_null': True},
+            'fecha_fin_descuento': {'required': False, 'allow_null': True}
         }
 
 
