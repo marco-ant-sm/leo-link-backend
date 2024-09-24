@@ -42,8 +42,27 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         return token
 
+#Nuevo validar
+from rest_framework.exceptions import AuthenticationFailed
+
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        try:
+            serializer.is_valid(raise_exception=True)
+        except AuthenticationFailed:
+            return Response({'message': 'Credenciales incorrectas. Intente nuevamente.'}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            return Response({'message': 'Error en el servidor. Intente más tarde.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        # Si las credenciales son válidas, devuelve el token
+        return Response(serializer.validated_data, status=status.HTTP_200_OK)
+    
+#Viejo Validar
+# class CustomTokenObtainPairView(TokenObtainPairView):
+#     serializer_class = CustomTokenObtainPairSerializer
 
 
 # class GoogleLoginApi(APIView):

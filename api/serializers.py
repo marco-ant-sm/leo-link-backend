@@ -93,12 +93,17 @@ class EventoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Evento
-        fields = ['id', 'nombre', 'descripcion', 'usuario', 'comentarios', 'categorias', 'categorias_ids', 'categoria_p', 'created_at', 'updated_at', 'numero_asistentes', 'asistido_por_usuario', 'imagen', 'tipo_e', 'fecha_evento', 'hora_evento', 'host_evento', 'fecha_fin_evento', 'hora_fin_evento', 'lugar_evento', 'fecha_fin_beneficio', 'fecha_fin_descuento']
+        fields = ['id', 'nombre', 'descripcion', 'usuario', 'comentarios', 'categorias', 'categorias_ids', 'categoria_p', 'created_at', 'updated_at', 'numero_asistentes', 'asistido_por_usuario', 'imagen', 'tipo_e', 'fecha_evento', 'hora_evento', 'host_evento', 'fecha_fin_evento', 'hora_fin_evento', 'lugar_evento', 'fecha_fin_beneficio', 'fecha_fin_descuento', 'horas_practica', 'direccion_practica', 'telefono_practica', 'ayuda_economica_p', 'fecha_fin_practica']
         read_only_fields = ['usuario', 'created_at', 'updated_at']
         extra_kwargs = {
             'imagen': {'required': False, 'allow_null': True},
             'fecha_fin_beneficio': {'required': False, 'allow_null': True},
-            'fecha_fin_descuento': {'required': False, 'allow_null': True}
+            'fecha_fin_descuento': {'required': False, 'allow_null': True},
+            'horas_practica': {'required': False, 'allow_null': True},
+            'direccion_practica': {'required': False, 'allow_null': True},
+            'telefono_practica': {'required': False, 'allow_null': True},
+            'ayuda_economica_p': {'required': False, 'allow_null': True},
+            'fecha_fin_practica': {'required': False, 'allow_null': True}
         }
 
 

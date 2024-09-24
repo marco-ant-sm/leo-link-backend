@@ -35,4 +35,13 @@ class Command(BaseCommand):
         for categoria in categorias_descuento:
             CategoriaEvento.objects.get_or_create(nombre=categoria, defaults={'tipo_e': 'descuento'})
 
+        #Categorias tipo practica
+        categorias_practica = [
+        'INCO', 'INDU', 'INCI', 'INAB', 'INTG', 
+        'INME', 'INQU', 'INLT', 'ININ', 'INBM', 
+        'INCE', 'INFO', 'INRO']
+
+        for categoria in categorias_practica:
+            CategoriaEvento.objects.get_or_create(nombre=categoria, defaults={'tipo_e': 'practica'})
+
         self.stdout.write(self.style.SUCCESS('Categorías de eventos cargadas exitosamente.'))

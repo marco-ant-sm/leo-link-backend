@@ -146,6 +146,13 @@ class Evento(models.Model):
     # Campos adicionales para el tipo 'descuento'
     fecha_fin_descuento = models.DateField(null=True, blank=True)  # No es obligatoria
 
+    #Campos adicionales para el tipo 'practica'
+    horas_practica = models.PositiveIntegerField(null=True, blank=True)  # Tipo numérico (hasta 6 dígitos)
+    direccion_practica = models.CharField(max_length=255, blank=True, null=True)  # Dirección de una empresa
+    telefono_practica = models.CharField(max_length=15, blank=True, null=True)  # Teléfono (máximo 15 dígitos)
+    ayuda_economica_p = models.CharField(max_length=10, blank=True, null=True)  # Texto para "sí" o "no"
+    fecha_fin_practica = models.DateField(null=True, blank=True)  # No es obligatoria
+
     def clean(self):
         # Verifica si el tipo es 'evento' y si los campos requeridos están presentes
         if self.tipo_e == 'evento':
