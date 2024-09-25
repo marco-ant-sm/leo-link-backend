@@ -431,3 +431,107 @@ def update_user_profile(request):
     # Aquí se informa sobre los errores específicos en la validación
     return Response({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
+
+#Actualizar contraseña de usuario
+@api_view(['PATCH'])
+def update_user_password(request):
+    if not request.user.is_authenticated:
+        return Response({'detail': 'Authentication credentials were not provided.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    user = request.user
+    new_password = request.data.get('new_password')
+    confirm_password = request.data.get('confirm_password')
+
+    if not new_password or not confirm_password:
+        return Response({'detail': 'Both password fields are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if new_password != confirm_password:
+        return Response({'detail': 'Passwords do not match.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    user.set_password(new_password)
+    user.save()
+
+    return Response({'detail': 'Password updated successfully.'}, status=status.HTTP_200_OK)
+
+
+#Recuperar Contraseña
+from django.core.mail import send_mail
+
+class RecoverPasswordView(APIView):
+    def post(self, request):
+        email = request.data.get('email')
+        try:
+            # Verifica si el correo existe en la base de datos
+            user = CustomUser.objects.get(email=email)
+
+            # Genera el token JWT con una duración de 24 horas
+            refresh = RefreshToken.for_user(user)
+            token = str(refresh.access_token)
+
+            # URL para resetear la contraseña
+            reset_url = f"http://localhost:3000/recoverPassword?token={token}"
+
+            # Cuerpo del mensaje en HTML
+            html_message = f"""
+            <html>
+            <body>
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4; border-radius: 8px;">
+                    <h2 style="color: #2a4d69;">Recuperación de Contraseña</h2>
+                    <p>Hola,</p>
+                    <p>Solicitaste recuperar tu contraseña. Dirígete al siguiente enlace y sigue los pasos descritos:</p>
+                    <a href="{reset_url}" style="display: inline-block; padding: 10px 15px; background-color: #1d70b8; color: white; text-decoration: none; border-radius: 5px;">Recuperar Contraseña</a>
+                    <p>Sigue los siguientes pasos:</p>
+                    <ol>
+                        <li>Ingresa a tu cuenta.</li>
+                        <li>Haz clic en la imagen de usuario que aparece en la barra de navegación en la parte derecha.</li>
+                        <li>Selecciona <strong>Configuración</strong>.</li>
+                        <li>Dirígete a la pestaña de <strong>Configuración de Usuario</strong>.</li>
+                        <li>En esa pestaña encontrarás la opción de <strong>cambiar contraseña</strong>.</li>
+                    </ol>
+                    <p>Si no solicitaste este cambio, por favor ignora este correo.</p>
+                    <p>Gracias,<br>El equipo de Leo-Link</p>
+                </div>
+            </body>
+            </html>
+            """
+
+            # Envía un correo con el asunto y el mensaje en HTML
+            send_mail(
+                'Leo-Link: Recuperación de Contraseña',
+                '',  # Deja el cuerpo del texto vacío ya que solo usarás HTML
+                settings.EMAIL_HOST_USER,
+                [email],
+                fail_silently=False,
+                html_message=html_message  # Cuerpo del correo en formato HTML
+            )
+
+            return Response({'message': 'Correo de recuperación enviado.'}, status=status.HTTP_200_OK)
+
+        except CustomUser.DoesNotExist:
+            return Response({'message': 'El correo no está registrado.'}, status=status.HTTP_400_BAD_REQUEST)
+
+# class RecoverPasswordView(APIView):
+#     def post(self, request):
+#         email = request.data.get('email')
+#         try:
+#             # Verifica si el correo existe en la base de datos
+#             user = CustomUser.objects.get(email=email)
+
+#             # Genera el token JWT con una duración de 24 horas
+#             refresh = RefreshToken.for_user(user)
+#             token = str(refresh.access_token)
+
+#             # Envía un correo con el link para la recuperación de contraseña
+#             reset_url = f"http://localhost:3000/recoverPassword?token={token}"
+#             send_mail(
+#                 'Recuperación de Contraseña',
+#                 f'Solicitaste recuperar tu contraseña. Haz clic en el siguiente enlace para acceder: {reset_url}',
+#                 settings.EMAIL_HOST_USER,
+#                 [email],
+#                 fail_silently=False,
+#             )
+
+#             return Response({'message': 'Correo de recuperación enviado.'}, status=status.HTTP_200_OK)
+
+#         except CustomUser.DoesNotExist:
+#             return Response({'message': 'El correo no está registrado.'}, status=status.HTTP_400_BAD_REQUEST)
