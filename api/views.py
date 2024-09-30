@@ -6,6 +6,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import generics, permissions
 from .models import CustomUser
 from .serializers import CustomUserSerializer
+from rest_framework import serializers
 
 #Google auth
 from django.conf import settings
@@ -20,7 +21,60 @@ import os
 class UserRegisterView(generics.CreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
-    permission_classes = [permissions.AllowAny]
+    #permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
+
+    def create(self, request, *args, **kwargs):
+        # Llama al método de creación del serializer
+        serializer = self.get_serializer(data=request.data)
+        try:
+            serializer.is_valid(raise_exception=True)
+            user = serializer.save()
+
+            # Aquí empieza la lógica para enviar el correo
+            subject = 'Registro a Leo-Link'
+            password = request.data.get('password')  # Obtén la contraseña temporal
+            html_message = f"""
+            <html>
+            <body>
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4; border-radius: 8px;">
+                    <h2 style="color: #2a4d69;">Bienvenido a Leo-Link</h2>
+                    <p>Hola {user.nombre},</p>
+                    <p>Tu cuenta ha sido creada exitosamente.</p>
+                    <p>Tu contraseña temporal es: <strong>{password}</strong></p>
+                    <p>Para cambiarla simplemente sigue los siguientes pasos:</p>
+                    <ol>
+                        <li>Ingresa a tu cuenta.</li>
+                        <li>Haz clic en la imagen de usuario que aparece en la barra de navegación en la parte derecha.</li>
+                        <li>Selecciona <strong>Configuración</strong>.</li>
+                        <li>Dirígete a la pestaña de <strong>Configuración de Usuario</strong>.</li>
+                        <li>En esa pestaña encontrarás la opción de <strong>cambiar contraseña</strong>.</li>
+                    </ol>
+                    <p>Gracias,<br>El equipo de Leo-Link</p>
+                </div>
+            </body>
+            </html>
+            """
+
+            # Intenta enviar el correo
+            try:
+                send_mail(
+                    subject,
+                    '',  # Deja el cuerpo del texto vacío ya que solo usarás HTML
+                    settings.EMAIL_HOST_USER,
+                    [user.email],
+                    fail_silently=False,
+                    html_message=html_message
+                )
+            except Exception as e:
+                # Aquí puedes registrar el error en un log si es necesario
+                print(f"Error al enviar correo: {e}")
+
+            # Respuesta positiva al usuario
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except serializers.ValidationError as e:
+            return Response({"errors": e.detail}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class UserDetailView(generics.RetrieveUpdateAPIView):
     queryset = CustomUser.objects.all()
@@ -260,14 +314,14 @@ class EventoViewSet(viewsets.ModelViewSet):
             )
 
             # Notificar en tiempo real a través de WebSocket
-            # channel_layer = get_channel_layer()
-            # async_to_sync(channel_layer.group_send)(
-            #     f"user_{usuario.id}",  # Cada usuario tendrá su propio grupo de WebSocket
-            #     {
-            #         'type': 'send_notification',
-            #         'message': f"Nuevo elemento de tu interes: {evento.nombre} en la categoría {evento.categoria_p}",
-            #     }
-            # )
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f"user_{usuario.id}",  # Cada usuario tendrá su propio grupo de WebSocket
+                {
+                    'type': 'send_notification',
+                    'message': f"Nuevo elemento de tu interes: {evento.nombre} en la categoría {evento.categoria_p}",
+                }
+            )
 
 #Comentarios
 from rest_framework import generics, permissions
@@ -535,3 +589,66 @@ class RecoverPasswordView(APIView):
 
 #         except CustomUser.DoesNotExist:
 #             return Response({'message': 'El correo no está registrado.'}, status=status.HTTP_400_BAD_REQUEST)
+
+#Obtener todos los objetos Usuario
+class UserListView(generics.ListAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = CustomUserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return super().get_queryset()
+
+#Eliminar un Usuario especifico
+class UserDeleteView(generics.DestroyAPIView):
+    queryset = CustomUser.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        user_id = self.kwargs.get('pk')
+        return generics.get_object_or_404(CustomUser, id=user_id)
+    
+#Actualizar usuario mediante id
+class UserUpdateView(generics.UpdateAPIView):
+    queryset = CustomUser.objects.all()
+    serializer_class = CustomUserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        # Obtener el objeto basado en el pk (id)
+        user_id = self.kwargs['pk']
+        try:
+            return CustomUser.objects.get(pk=user_id)
+        except CustomUser.DoesNotExist:
+            return None
+
+    def patch(self, request, *args, **kwargs):
+        user = self.get_object()
+        if user is None:
+            return Response({'error': 'Usuario no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = self.get_serializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+#Mostrar eventos publicos
+class EventoReadOnlyViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Evento.objects.all()
+    serializer_class = EventoSerializer
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = []  # Esto desactiva la autenticación para esta vista
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.queryset.order_by('-created_at')
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+    
+#Obtener categorias de eventos publicos
+class CategoriaEventoPublicoListView(generics.ListAPIView):
+    queryset = CategoriaEvento.objects.all()
+    serializer_class = CategoriaEventoSerializer
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = []

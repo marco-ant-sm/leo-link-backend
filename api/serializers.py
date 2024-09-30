@@ -20,18 +20,26 @@ class CustomUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ('id', 'email', 'nombre', 'apellidos', 'password', 'descripcion', 'permiso_u', 'imagen', 'categorias_preferidas', 'categorias_preferidas_ids')
+        fields = ('id', 'email', 'nombre', 'apellidos', 'password', 'descripcion', 'permiso_u', 'imagen', 'categorias_preferidas', 'categorias_preferidas_ids', 'baneo', 'telefono')
         extra_kwargs = {
             'password': {'write_only': True, 'min_length': 8, 'required': False},
-            'imagen': {'required': False}
+            'imagen': {'required': False},
+            'baneo': {'required': False},
+            'telefono': {'required': False}
         }
 
 
     def get_categorias_preferidas_ids(self, obj):
         return [categoria.id for categoria in obj.categorias_preferidas.all()]
     
+    def validate_email(self, value):
+            if CustomUser.objects.filter(email=value).exists():
+                raise serializers.ValidationError("Este correo ya está registrado.")
+            return value
+    
 
     def create(self, validated_data):
+    
         categorias_preferidas = validated_data.pop('categorias_preferidas', [])
         password = validated_data.pop('password', None)
         user = CustomUser.objects.create_user(
@@ -40,7 +48,8 @@ class CustomUserSerializer(serializers.ModelSerializer):
             apellidos=validated_data.get('apellidos', ''),
             descripcion=validated_data.get('descripcion', ''),
             permiso_u=validated_data.get('permiso_u', 'admin'),
-            imagen=validated_data.get('imagen', None)
+            imagen=validated_data.get('imagen', None),
+            baneo=validated_data.get('baneo', False)
         )
         if password:
             user.set_password(password)
@@ -93,7 +102,7 @@ class EventoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Evento
-        fields = ['id', 'nombre', 'descripcion', 'usuario', 'comentarios', 'categorias', 'categorias_ids', 'categoria_p', 'created_at', 'updated_at', 'numero_asistentes', 'asistido_por_usuario', 'imagen', 'tipo_e', 'fecha_evento', 'hora_evento', 'host_evento', 'fecha_fin_evento', 'hora_fin_evento', 'lugar_evento', 'fecha_fin_beneficio', 'fecha_fin_descuento', 'horas_practica', 'direccion_practica', 'telefono_practica', 'ayuda_economica_p', 'fecha_fin_practica']
+        fields = ['id', 'nombre', 'descripcion', 'usuario', 'comentarios', 'categorias', 'categorias_ids', 'categoria_p', 'created_at', 'updated_at', 'numero_asistentes', 'asistido_por_usuario', 'imagen', 'tipo_e', 'fecha_evento', 'hora_evento', 'host_evento', 'fecha_fin_evento', 'hora_fin_evento', 'lugar_evento', 'fecha_fin_beneficio', 'fecha_fin_descuento', 'horas_practica', 'direccion_practica', 'telefono_practica', 'ayuda_economica_p', 'fecha_fin_practica', 'acceso_e']
         read_only_fields = ['usuario', 'created_at', 'updated_at']
         extra_kwargs = {
             'imagen': {'required': False, 'allow_null': True},
@@ -103,7 +112,8 @@ class EventoSerializer(serializers.ModelSerializer):
             'direccion_practica': {'required': False, 'allow_null': True},
             'telefono_practica': {'required': False, 'allow_null': True},
             'ayuda_economica_p': {'required': False, 'allow_null': True},
-            'fecha_fin_practica': {'required': False, 'allow_null': True}
+            'fecha_fin_practica': {'required': False, 'allow_null': True},
+            'acceso_e': {'required': False, 'allow_null': True}
         }
 
 

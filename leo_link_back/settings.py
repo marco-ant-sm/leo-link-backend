@@ -171,12 +171,22 @@ SIMPLE_JWT = {
     'JTI_CLAIM': 'jti',
 }
 
+# REST_FRAMEWORK = {
+#     'DEFAULT_AUTHENTICATION_CLASSES': (
+#         'rest_framework_simplejwt.authentication.JWTAuthentication',
+#         'rest_framework.authentication.SessionAuthentication',
+#         'rest_framework.authentication.BasicAuthentication',
+#     ),
+#     "DEFAULT_SCHEMA_CLASS": ("rest_framework.schemas.coreapi.AutoSchema"),
+# }
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     "DEFAULT_SCHEMA_CLASS": ("rest_framework.schemas.coreapi.AutoSchema"),
 }
+
 
 #Google auth
 from dotenv import load_dotenv
@@ -210,4 +220,4 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'statprueba11@gmail.com'
-EMAIL_HOST_PASSWORD = 'icrg uwey vnjy izza'
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_PASSWORD')

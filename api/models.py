@@ -72,11 +72,14 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         ('estudiante', 'Estudiante'),
         ('docente', 'Docente'),
         ('empresa', 'Empresa'),
+        ('grupo_personal', 'Grupo/Personal'),
     ]
     permiso_u = models.CharField(max_length=20, choices=PERMISO_CHOICES, default='admin')
     imagen = models.ImageField(upload_to=user_image_upload_path, blank=True, null=True)
     categorias_preferidas = models.ManyToManyField(CategoriaEvento, blank=True, related_name='usuarios')
-
+    baneo = models.BooleanField(default=False)
+    telefono = models.CharField(max_length=15, blank=True, null=True)
+    
     objects = CustomUserManager()
 
     USERNAME_FIELD = 'email'
@@ -152,6 +155,14 @@ class Evento(models.Model):
     telefono_practica = models.CharField(max_length=15, blank=True, null=True)  # Teléfono (máximo 15 dígitos)
     ayuda_economica_p = models.CharField(max_length=10, blank=True, null=True)  # Texto para "sí" o "no"
     fecha_fin_practica = models.DateField(null=True, blank=True)  # No es obligatoria
+
+    #Campo para definir si un evento es publico o privado
+    # Campo de acceso
+    ACCESO_EVENTO_CHOICES = [
+        ('publico', 'Público'),
+        ('red-universitaria', 'Red Universitaria'),
+    ]
+    acceso_e = models.CharField(max_length=20, choices=ACCESO_EVENTO_CHOICES, default='red-universitaria')
 
     def clean(self):
         # Verifica si el tipo es 'evento' y si los campos requeridos están presentes
