@@ -49,7 +49,8 @@ class CustomUserSerializer(serializers.ModelSerializer):
             descripcion=validated_data.get('descripcion', ''),
             permiso_u=validated_data.get('permiso_u', 'admin'),
             imagen=validated_data.get('imagen', None),
-            baneo=validated_data.get('baneo', False)
+            baneo=validated_data.get('baneo', False),
+            telefono=validated_data.get('telefono', '')
         )
         if password:
             user.set_password(password)
@@ -102,7 +103,7 @@ class EventoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Evento
-        fields = ['id', 'nombre', 'descripcion', 'usuario', 'comentarios', 'categorias', 'categorias_ids', 'categoria_p', 'created_at', 'updated_at', 'numero_asistentes', 'asistido_por_usuario', 'imagen', 'tipo_e', 'fecha_evento', 'hora_evento', 'host_evento', 'fecha_fin_evento', 'hora_fin_evento', 'lugar_evento', 'fecha_fin_beneficio', 'fecha_fin_descuento', 'horas_practica', 'direccion_practica', 'telefono_practica', 'ayuda_economica_p', 'fecha_fin_practica', 'acceso_e']
+        fields = ['id', 'nombre', 'descripcion', 'usuario', 'comentarios', 'categorias', 'categorias_ids', 'categoria_p', 'created_at', 'updated_at', 'numero_asistentes', 'asistido_por_usuario', 'imagen', 'tipo_e', 'fecha_evento', 'hora_evento', 'host_evento', 'fecha_fin_evento', 'hora_fin_evento', 'lugar_evento', 'disponible', 'fecha_fin_beneficio', 'fecha_fin_descuento', 'horas_practica', 'direccion_practica', 'telefono_practica', 'ayuda_economica_p', 'fecha_fin_practica', 'acceso_e']
         read_only_fields = ['usuario', 'created_at', 'updated_at']
         extra_kwargs = {
             'imagen': {'required': False, 'allow_null': True},
@@ -113,7 +114,8 @@ class EventoSerializer(serializers.ModelSerializer):
             'telefono_practica': {'required': False, 'allow_null': True},
             'ayuda_economica_p': {'required': False, 'allow_null': True},
             'fecha_fin_practica': {'required': False, 'allow_null': True},
-            'acceso_e': {'required': False, 'allow_null': True}
+            'acceso_e': {'required': False, 'allow_null': True},
+            'disponible': {'required': False, 'allow_null': True}
         }
 
 

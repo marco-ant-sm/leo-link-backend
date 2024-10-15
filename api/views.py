@@ -314,14 +314,14 @@ class EventoViewSet(viewsets.ModelViewSet):
             )
 
             # Notificar en tiempo real a través de WebSocket
-            channel_layer = get_channel_layer()
-            async_to_sync(channel_layer.group_send)(
-                f"user_{usuario.id}",  # Cada usuario tendrá su propio grupo de WebSocket
-                {
-                    'type': 'send_notification',
-                    'message': f"Nuevo elemento de tu interes: {evento.nombre} en la categoría {evento.categoria_p}",
-                }
-            )
+            # channel_layer = get_channel_layer()
+            # async_to_sync(channel_layer.group_send)(
+            #     f"user_{usuario.id}",  # Cada usuario tendrá su propio grupo de WebSocket
+            #     {
+            #         'type': 'send_notification',
+            #         'message': f"Nuevo elemento de tu interes: {evento.nombre} en la categoría {evento.categoria_p}",
+            #     }
+            # )
 
 #Comentarios
 from rest_framework import generics, permissions

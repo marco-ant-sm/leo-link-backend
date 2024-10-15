@@ -143,6 +143,9 @@ class Evento(models.Model):
     hora_fin_evento = models.TimeField(null=True, blank=True)
     lugar_evento = models.CharField(max_length=255, null=True, blank=True)
 
+    #Campo disponible para confirmación de eventos
+    disponible = models.BooleanField(default=True)
+
     # Campos adicionales para el tipo 'beneficio'
     fecha_fin_beneficio = models.DateField(null=True, blank=True)  # No es obligatoria
 
