@@ -297,6 +297,22 @@ class EventoViewSet(viewsets.ModelViewSet):
         serializer.save(usuario=self.request.user, imagen=instance.imagen)
 
     def enviar_notificaciones(self, evento):
+        #Validar que en caso de no ser el admnistrador el que crea el evento no se envien las notificaciones
+        if str(evento.tipo_e) == 'evento' and str(evento.usuario.permiso_u) != 'admin':
+            usuarios_admin = CustomUser.objects.filter(permiso_u='admin').distinct()
+
+            for usuario in usuarios_admin:
+                # Mandar mensaje mediante las notificaciones para que el numero de eventos por confirmar cambie
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.group_send)(
+                    f"user_{usuario.id}",  # Cada usuario tendrá su propio grupo de WebSocket
+                    {
+                        'type': 'send_notification',
+                        'message': f"Change confirmation number",
+                    }
+                )
+            return
+        
         # Obtener las categorías del evento
         categorias_evento = evento.categorias.all()
         
@@ -314,14 +330,14 @@ class EventoViewSet(viewsets.ModelViewSet):
             )
 
             # Notificar en tiempo real a través de WebSocket
-            # channel_layer = get_channel_layer()
-            # async_to_sync(channel_layer.group_send)(
-            #     f"user_{usuario.id}",  # Cada usuario tendrá su propio grupo de WebSocket
-            #     {
-            #         'type': 'send_notification',
-            #         'message': f"Nuevo elemento de tu interes: {evento.nombre} en la categoría {evento.categoria_p}",
-            #     }
-            # )
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f"user_{usuario.id}",  # Cada usuario tendrá su propio grupo de WebSocket
+                {
+                    'type': 'send_notification',
+                    'message': f"Nuevo elemento de tu interes: {evento.nombre} en la categoría {evento.categoria_p}",
+                }
+            )
 
 #Comentarios
 from rest_framework import generics, permissions
@@ -652,3 +668,150 @@ class CategoriaEventoPublicoListView(generics.ListAPIView):
     serializer_class = CategoriaEventoSerializer
     permission_classes = [permissions.AllowAny]
     authentication_classes = []
+
+
+#Aceptar eventos
+class AcceptEventView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, event_id):
+        try:
+            evento = Evento.objects.get(id=event_id)
+            evento.disponible = True
+            evento.save()
+
+            #Enviar notificaciones
+            self.enviar_notificaciones(evento)
+
+            # Enviar correo al creador del evento
+            user = evento.usuario
+            subject = f'Confirmación de Publicación de Evento: {evento.nombre}'
+            html_message = f"""
+            <html>
+            <body>
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4; border-radius: 8px;">
+                    <h2 style="color: #2a4d69;">¡Tu evento ha sido confirmado!</h2>
+                    <p>Hola {user.nombre},</p>
+                    <p>Tu evento "{evento.nombre}" ha sido publicado en la plataforma.</p>
+                    <p>Atentamente,<br>El equipo de Leo-Link</p>
+                </div>
+            </body>
+            </html>
+            """
+            try:
+                send_mail(
+                    subject,
+                    '',
+                    settings.EMAIL_HOST_USER,
+                    [user.email],
+                    fail_silently=False,
+                    html_message=html_message
+                )
+            except Exception as e:
+                # Aquí puedes manejar el error del envío de correo si lo deseas
+                print(f"Error al enviar correo: {e}")
+
+            return Response({'message': 'Evento confirmado'}, status=status.HTTP_200_OK)
+        except Evento.DoesNotExist:
+            return Response({'error': 'Evento no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+    
+
+    def enviar_notificaciones(self, evento):
+        # Obtener las categorías del evento
+        categorias_evento = evento.categorias.all()
+        
+        # Buscar usuarios que tengan esas categorías en su perfil
+        usuarios_interesados = CustomUser.objects.filter(categorias_preferidas__in=categorias_evento).exclude(id=evento.usuario.id).distinct()
+
+        # Crear una notificación para cada usuario interesado
+        for usuario in usuarios_interesados:
+            mensaje = f"Se ha agregado { 'una' if str(evento.tipo_e) == 'practica' else 'un' } {str(evento.tipo_e)} de tu interés: {evento.nombre}"
+            Notificacion.objects.create(
+                usuario=usuario,
+                evento=evento,
+                mensaje=mensaje,
+                tipo_e=evento.tipo_e
+            )
+
+            # Notificar en tiempo real a través de WebSocket
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f"user_{usuario.id}",  # Cada usuario tendrá su propio grupo de WebSocket
+                {
+                    'type': 'send_notification',
+                    'message': f"Nuevo elemento de tu interes: {evento.nombre} en la categoría {evento.categoria_p}",
+                }
+            )
+
+
+        #Cambiar numero de eventos por confirmar en el userNavbar
+        usuarios_admin = CustomUser.objects.filter(permiso_u='admin').distinct()
+
+        for usuario in usuarios_admin:
+            # Mandar mensaje mediante las notificaciones para que el numero de eventos por confirmar cambie
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f"user_{usuario.id}",  # Cada usuario tendrá su propio grupo de WebSocket
+                {
+                    'type': 'send_notification',
+                    'message': f"Change confirmation number",
+                }
+            )
+
+
+#Rechazar el evento
+class RejectEventView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, event_id):
+        try:
+            evento = Evento.objects.get(id=event_id)
+            evento_nombre = evento.nombre  # Guardar el nombre del evento para el correo
+            evento.delete()
+
+            #Cambiar numero de eventos por confirmar en el userNavbar
+            usuarios_admin = CustomUser.objects.filter(permiso_u='admin').distinct()
+
+            for usuario in usuarios_admin:
+                # Mandar mensaje mediante las notificaciones para que el numero de eventos por confirmar cambie
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.group_send)(
+                    f"user_{usuario.id}",  # Cada usuario tendrá su propio grupo de WebSocket
+                    {
+                        'type': 'send_notification',
+                        'message': f"Change confirmation number",
+                    }
+                )
+
+            # Enviar correo al creador del evento
+            user = evento.usuario
+            subject = f'Rechazo de Evento: {evento_nombre}'
+            html_message = f"""
+            <html>
+            <body>
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f4f4f4; border-radius: 8px;">
+                    <h2 style="color: #2a4d69;">Tu evento ha sido rechazado</h2>
+                    <p>Hola {user.nombre},</p>
+                    <p>Lamentamos informarte que tu evento "{evento_nombre}" ha sido rechazado.</p>
+                    <p>Si tienes preguntas, por favor, contacta con la administración de Leo-Link.</p>
+                    <p>Atentamente,<br>El equipo de Leo-Link</p>
+                </div>
+            </body>
+            </html>
+            """
+            try:
+                send_mail(
+                    subject,
+                    '',
+                    settings.EMAIL_HOST_USER,
+                    [user.email],
+                    fail_silently=False,
+                    html_message=html_message
+                )
+            except Exception as e:
+                # Manejo de errores del envío de correo si es necesario
+                print(f"Error al enviar correo: {e}")
+
+            return Response({'message': 'Evento rechazado'}, status=status.HTTP_204_NO_CONTENT)
+        except Evento.DoesNotExist:
+            return Response({'error': 'Evento no encontrado'}, status=status.HTTP_404_NOT_FOUND)

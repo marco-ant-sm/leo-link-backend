@@ -14,6 +14,9 @@ from api.views import CategoriaEventoListView, get_user_categories, update_user_
 #Notificaciones
 from api.views import NotificacionesUsuarioView, MarcarNotificacionesLeidasView
 
+#Confirmar eventos
+from .views import AcceptEventView, RejectEventView
+
 #Librerias para cruds
 from rest_framework.routers import DefaultRouter
 from .views import EventoViewSet, EventoReadOnlyViewSet
@@ -56,4 +59,6 @@ urlpatterns = [
     path('users/', UserListView.as_view(), name='user-list'),
     path('user/delete/<int:pk>/', UserDeleteView.as_view(), name='user-delete'),
     path('user/update/<int:pk>/', UserUpdateView.as_view(), name='user-update'),
+    path('aceptar-evento/<int:event_id>/', AcceptEventView.as_view(), name='accept_event'),
+    path('rechazar-evento/<int:event_id>/', RejectEventView.as_view(), name='reject_event'),
 ]

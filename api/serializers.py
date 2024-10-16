@@ -115,7 +115,6 @@ class EventoSerializer(serializers.ModelSerializer):
             'ayuda_economica_p': {'required': False, 'allow_null': True},
             'fecha_fin_practica': {'required': False, 'allow_null': True},
             'acceso_e': {'required': False, 'allow_null': True},
-            'disponible': {'required': False, 'allow_null': True}
         }
 
 
@@ -156,6 +155,7 @@ class EventoSerializer(serializers.ModelSerializer):
 
     #Funcion para la correcta asociacion de categorias en la creacion del evento
     def create(self, validated_data):
+        
         categoria_p_name = self.context['request'].data.get('categoria_p')
         categorias_ids = self.context['request'].data.get('categorias_ids', [])
         
