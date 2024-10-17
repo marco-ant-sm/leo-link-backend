@@ -92,6 +92,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
 
         # Add custom claims
         token['nombre'] = user.nombre
+        token['id'] = user.id
         token['apellidos'] = user.apellidos
 
         return token
@@ -209,6 +210,7 @@ class GoogleLoginApi(APIView):
         # Preparar datos del usuario para la URL
         user_info = {
             'nombre': user.nombre,
+            'id': user.id,
             'apellidos': user.apellidos,
             'access': access_token,
             'refresh': refresh_token
@@ -295,6 +297,28 @@ class EventoViewSet(viewsets.ModelViewSet):
 
         # Caso 1: Agregar o mantener la imagen según lo que se haya subido
         serializer.save(usuario=self.request.user, imagen=instance.imagen)
+    
+    #Modificar delete para que ya no le salga la notificacion al admin si es que el evento que se elimino es no disponible
+    def destroy(self, request, *args, **kwargs):
+        evento = self.get_object()  # Obtener el evento a eliminar
+        self.perform_destroy(evento)  # Eliminar el evento
+
+        # Cambiar el número de eventos por confirmar en el userNavbar
+        if evento.tipo_e == 'evento' and not evento.disponible:
+            usuarios_admin = CustomUser.objects.filter(permiso_u='admin').distinct()
+
+            # Enviar notificación a los administradores
+            channel_layer = get_channel_layer()
+            for usuario in usuarios_admin:
+                async_to_sync(channel_layer.group_send)(
+                    f"user_{usuario.id}",
+                    {
+                        'type': 'send_notification',
+                        'message': "Change confirmation number",
+                    }
+                )
+
+        return Response(status=204)
 
     def enviar_notificaciones(self, evento):
         #Validar que en caso de no ser el admnistrador el que crea el evento no se envien las notificaciones
