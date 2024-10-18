@@ -32,7 +32,7 @@ def google_get_user_info(access_token: str):
     return response.json()
 
 def get_user_data(validated_data):
-    redirect_uri = f"{settings.BASE_API_URL}/auth/api/login/google/"
+    redirect_uri = f"{settings.BASE_API_URL}/api/auth/login/google/"
     code = validated_data.get('code')
     error = validated_data.get('error')
 

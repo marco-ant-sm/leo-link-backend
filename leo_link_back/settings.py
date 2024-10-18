@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure--&(mu^0z=4_#9f%c!vb%0!&lj$z=&liwwmad$_s+kz)cx__t+#
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 
 # Application definition
@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'rest_framework_simplejwt',
+    'coreapi',
+    'channels',
     'api'
 ]
 
@@ -72,7 +74,12 @@ TEMPLATES = [
     },
 ]
 
+
+# Para aplicaciones WSGI (HTTP tradicional)
 WSGI_APPLICATION = 'leo_link_back.wsgi.application'
+
+# Notificaciones Para aplicaciones ASGI (WebSocket y funcionalidades asíncronas)
+ASGI_APPLICATION = 'leo_link_back.asgi.application'
 
 
 # Database
@@ -138,7 +145,7 @@ AUTH_USER_MODEL = 'api.CustomUser'
 from datetime import timedelta
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=4),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': True,
@@ -164,11 +171,22 @@ SIMPLE_JWT = {
     'JTI_CLAIM': 'jti',
 }
 
+# REST_FRAMEWORK = {
+#     'DEFAULT_AUTHENTICATION_CLASSES': (
+#         'rest_framework_simplejwt.authentication.JWTAuthentication',
+#         'rest_framework.authentication.SessionAuthentication',
+#         'rest_framework.authentication.BasicAuthentication',
+#     ),
+#     "DEFAULT_SCHEMA_CLASS": ("rest_framework.schemas.coreapi.AutoSchema"),
+# }
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    "DEFAULT_SCHEMA_CLASS": ("rest_framework.schemas.coreapi.AutoSchema"),
 }
+
 
 #Google auth
 from dotenv import load_dotenv
@@ -182,3 +200,24 @@ BASE_APP_URL = os.getenv('BASE_APP_URL')
 BASE_API_URL = os.getenv('BASE_API_URL')
 GOOGLE_OAUTH2_CLIENT_ID = os.getenv('GOOGLE_OAUTH2_CLIENT_ID')
 GOOGLE_OAUTH2_CLIENT_SECRET = os.getenv('GOOGLE_OAUTH2_CLIENT_SECRET')
+
+
+#Load images
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+#Notificaciones config para channel layers
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    }
+}
+
+#Configuracion de correo
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'statprueba11@gmail.com'
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_PASSWORD')
