@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 from api.models import CategoriaEvento
+from api.models import CustomUser
 
 class Command(BaseCommand):
     help = 'Carga las categorías de eventos por defecto'
@@ -44,4 +45,13 @@ class Command(BaseCommand):
         for categoria in categorias_practica:
             CategoriaEvento.objects.get_or_create(nombre=categoria, defaults={'tipo_e': 'practica'})
 
-        self.stdout.write(self.style.SUCCESS('Categorías de eventos cargadas exitosamente.'))
+         # Crear el usuario administrador si no existe
+        if not CustomUser.objects.filter(email='admin@admin.com').exists():
+            CustomUser.objects.create_superuser(
+                email='admin@admin.com',
+                password='adminRoot',
+                nombre='Administrador',
+                permiso_u='admin'
+            )
+
+        self.stdout.write(self.style.SUCCESS('Categorías de eventos y usuario administrador cargados exitosamente.'))
